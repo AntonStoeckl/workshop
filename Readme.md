@@ -1,5 +1,12 @@
 ## Repository for code sharing between participants of the workshop "Implementing an Event-Sourced Aggregate"
 
+### The hypothetical Domain
+
+We will implement a small part of a Customer Aggregate, which could be needed for a subdomain "Customer Accounts".  
+This subdomain could be a part of a Business Domain like Car Sharing or Car Rental.  
+Such a business requires Customers to register and maintain their accounts to be able to use the services.  
+For the sake of this workshop, many parts of Customer Accounts have been left out!
+
 ## The Lifecycle of an Event-Sourced Aggregate
 
 ![Event-Sourcing Lifecycle](images/es-lifecycle.jpg)
