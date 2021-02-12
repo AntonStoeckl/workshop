@@ -4,6 +4,7 @@ import domain.customer.command.RegisterCustomer;
 import domain.customer.event.CustomerRegistered;
 import org.junit.jupiter.api.Test;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public class CustomerTest {
@@ -16,6 +17,13 @@ public class CustomerTest {
 
         // Then CustomerRegistered
         assertNotNull(customerRegistered);
+        assertNotNull(customerRegistered.customerId);
+        assertNotNull(customerRegistered.emailAddress);
+        assertNotNull(customerRegistered.hash);
+        assertNotNull(customerRegistered.personName);
+
+        assertEquals(registerCustomer.emailAddress, customerRegistered.emailAddress);
+        assertEquals(registerCustomer.personName, customerRegistered.personName);
 
         //  and the payload should be as expected
         // TODO assert that the event contains the correct values
