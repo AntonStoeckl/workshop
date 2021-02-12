@@ -43,13 +43,15 @@ public class Customer {
 
     public Optional<Event> confirmEmailAddress(ConfirmCustomerEmailAddress command) {
         Event event;
-        if (command.getConfirmationHash().equals(this.getHash())) {
+        if (!command.getConfirmationHash().equals(this.getHash())) {
+            event = new CustomerEmailAddressConfirmationFailed(id);
+        } else if (!this.emailAddressConfirmed) {
             this.emailAddressConfirmed = true;
             event = new CustomerEmailAddressConfirmed(id);
         } else {
-            event = new CustomerEmailAddressConfirmationFailed(id);
+            event = null;
         }
-        return Optional.of(event);
+        return Optional.ofNullable(event);
     }
 
     public ID getId() {
@@ -93,7 +95,7 @@ public class Customer {
             }
 
             void apply(Customer customer, CustomerEmailAddressConfirmed event) {
-
+                customer.emailAddressConfirmed = true;
             }
         };
 

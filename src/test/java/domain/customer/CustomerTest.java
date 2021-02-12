@@ -80,4 +80,17 @@ public class CustomerTest {
         assertTrue(event instanceof CustomerEmailAddressConfirmationFailed);
         assertEquals(command.getCustomerID(), ((CustomerEmailAddressConfirmationFailed) event).getId());
     }
+
+    @Test
+    public void confirmation_hash_already_checked() {
+        CustomerRegistered registeredEvent = CustomerRegistered.build(id, email, hash, name);
+        CustomerEmailAddressConfirmed firstConfirmEvent = new CustomerEmailAddressConfirmed(id);
+
+        Customer customer = Customer.rebuild(Arrays.asList(registeredEvent, firstConfirmEvent));
+
+        ConfirmCustomerEmailAddress command = ConfirmCustomerEmailAddress.build(id.getValue(), hash.getValue());
+        Optional<Event> optionalEvent = customer.confirmEmailAddress(command);
+
+        assertFalse(optionalEvent.isPresent());
+    }
 }
