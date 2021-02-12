@@ -93,4 +93,19 @@ public class CustomerTest {
 
         assertFalse(optionalEvent.isPresent());
     }
+
+    @Test
+    public void reconfirm_with_wrong_hash() {
+        CustomerRegistered registeredEvent = CustomerRegistered.build(id, email, hash, name);
+        CustomerEmailAddressConfirmed firstConfirmEvent = new CustomerEmailAddressConfirmed(id);
+
+        Customer customer = Customer.rebuild(Arrays.asList(registeredEvent, firstConfirmEvent));
+
+        ConfirmCustomerEmailAddress command = ConfirmCustomerEmailAddress.build(id.getValue(), UUID.randomUUID());
+        Optional<Event> optionalEvent = customer.confirmEmailAddress(command);
+
+        Event event = optionalEvent.get();
+        assertTrue(event instanceof CustomerEmailAddressConfirmationFailed);
+        assertEquals(command.getCustomerID(), ((CustomerEmailAddressConfirmationFailed) event).getId());
+    }
 }
