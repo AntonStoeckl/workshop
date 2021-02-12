@@ -31,8 +31,6 @@ public class Customer {
                 registerCustomer.getEmailAddress(),
                 registerCustomer.getHash(),
                 registerCustomer.getName());
-        Customer customer = new Customer();
-        ApplyStrategy.CUSTOMER_REGISTERED.apply(customer, event);
         return event;
     }
 
