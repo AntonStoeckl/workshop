@@ -1,11 +1,13 @@
 package domain.customer;
 
 import domain.customer.command.ChangeCustomerEmailAddress;
+import domain.customer.command.ChangeCustomerName;
 import domain.customer.command.ConfirmCustomerEmailAddress;
 import domain.customer.command.RegisterCustomer;
 import domain.customer.event.CustomerEmailAddressChanged;
 import domain.customer.event.CustomerEmailAddressConfirmationFailed;
 import domain.customer.event.CustomerEmailAddressConfirmed;
+import domain.customer.event.CustomerNameChanged;
 import domain.customer.event.CustomerRegistered;
 import domain.customer.event.Event;
 import domain.customer.value.EmailAddress;
@@ -179,5 +181,26 @@ public class CustomerTest {
 
         assertTrue(confirmEvent instanceof CustomerEmailAddressConfirmed);
         assertEquals(confirmCommand.getCustomerID(), ((CustomerEmailAddressConfirmed) confirmEvent).getId());
+    }
+
+    @Test
+    public void customers_name_changed() {
+        final String first = "Max";
+        final String last = "Mustermann";
+        PersonName changedName = PersonName.build(first, last);
+
+        CustomerRegistered theEvent = CustomerRegistered.build(id, email, hash, name);
+
+        Customer customer = Customer.rebuild(Arrays.asList(theEvent));
+
+        ChangeCustomerName changeCommand = ChangeCustomerName.build(id.getValue(), first, last);
+        Optional<Event> optionalEvent = customer.changeName(changeCommand);
+
+        Event changeEvent = optionalEvent.get();
+
+        assertTrue(changeEvent instanceof CustomerNameChanged);
+        CustomerNameChanged customerEvent = (CustomerNameChanged) changeEvent;
+        assertEquals(id, customerEvent.getId());
+        assertEquals(changedName, customerEvent.getName());
     }
 }

@@ -1,11 +1,13 @@
 package domain.customer;
 
 import domain.customer.command.ChangeCustomerEmailAddress;
+import domain.customer.command.ChangeCustomerName;
 import domain.customer.command.ConfirmCustomerEmailAddress;
 import domain.customer.command.RegisterCustomer;
 import domain.customer.event.CustomerEmailAddressChanged;
 import domain.customer.event.CustomerEmailAddressConfirmationFailed;
 import domain.customer.event.CustomerEmailAddressConfirmed;
+import domain.customer.event.CustomerNameChanged;
 import domain.customer.event.CustomerRegistered;
 import domain.customer.event.Event;
 import domain.customer.value.EmailAddress;
@@ -65,6 +67,15 @@ public class Customer {
         return Optional.ofNullable(event);
     }
 
+    public Optional<Event> changeName(ChangeCustomerName command) {
+
+        CustomerNameChanged event = CustomerNameChanged.build(command.getCustomerID().getValue(),
+                command.getName().getGivenName(),
+                command.getName().getFamilyName());
+
+        return Optional.of(event);
+    }
+
     public ID getId() {
         return id;
     }
@@ -119,6 +130,15 @@ public class Customer {
                 customer.hash = event.getConfirmationHash();
                 customer.emailAddressConfirmed = false;
             }
+        }, NAME_CHANGED {
+            @Override
+            void apply(Customer customer, Event event) {
+                apply(customer, (CustomerNameChanged) event);
+            }
+
+            void apply(Customer customer, CustomerNameChanged event) {
+                customer.name = event.getName();
+            }
         };
 
         public static void applyEvent(Customer customer, Event event) {
@@ -128,6 +148,8 @@ public class Customer {
                 ApplyStrategy.EMAIL_CONFIRMED.apply(customer, event);
             } else if (event instanceof CustomerEmailAddressChanged) {
                 ApplyStrategy.EMAIL_CHANGED.apply(customer, event);
+            } else if (event instanceof CustomerNameChanged) {
+                ApplyStrategy.NAME_CHANGED.apply(customer, event);
             }
             // ignore Event
         }
