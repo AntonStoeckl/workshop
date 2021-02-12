@@ -66,8 +66,6 @@ public class CustomerTest {
 
         Event event = optionalEvent.get();
 
-        Customer.rebuild(Arrays.asList(theEvent, event));
-
         assertTrue(event instanceof CustomerEmailAddressConfirmed);
         assertEquals(command.getCustomerID(), ((CustomerEmailAddressConfirmed) event).getId());
     }
@@ -82,8 +80,6 @@ public class CustomerTest {
         Optional<Event> optionalEvent = customer.confirmEmailAddress(command);
 
         Event event = optionalEvent.get();
-
-        Customer.rebuild(Arrays.asList(theEvent, event));
 
         assertTrue(event instanceof CustomerEmailAddressConfirmationFailed);
         assertEquals(command.getCustomerID(), ((CustomerEmailAddressConfirmationFailed) event).getId());
@@ -113,8 +109,6 @@ public class CustomerTest {
         Optional<Event> optionalEvent = customer.confirmEmailAddress(command);
 
         Event event = optionalEvent.get();
-
-        Customer.rebuild(Arrays.asList(registeredEvent, firstConfirmEvent, event));
 
         assertTrue(event instanceof CustomerEmailAddressConfirmationFailed);
         assertEquals(command.getCustomerID(), ((CustomerEmailAddressConfirmationFailed) event).getId());
