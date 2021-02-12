@@ -132,4 +132,16 @@ public class CustomerTest {
         assertEquals(command.getEmailAddress(), addressChangedEvent.getEmailAddress());
         assertEquals(command.getConfirmationHash(), addressChangedEvent.getConfirmationHash());
     }
+
+    @Test
+    public void change_email_address_to_same_value() {
+        CustomerRegistered theEvent = CustomerRegistered.build(id, email, hash, name);
+
+        Customer customer = Customer.rebuild(Arrays.asList(theEvent));
+
+        ChangeCustomerEmailAddress command = ChangeCustomerEmailAddress.build(id, hash, email);
+        Optional<Event> optionalEvent = customer.changeEmailAddress(command);
+
+        assertFalse(optionalEvent.isPresent());
+    }
 }

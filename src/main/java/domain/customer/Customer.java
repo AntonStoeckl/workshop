@@ -53,10 +53,16 @@ public class Customer {
     }
 
     public Optional<Event> changeEmailAddress(ChangeCustomerEmailAddress command) {
-        CustomerEmailAddressChanged event = CustomerEmailAddressChanged.build(command.getId(),
-                command.getConfirmationHash(),
-                command.getEmailAddress());
-        return Optional.of(event);
+        Event event;
+        if (command.getEmailAddress().equals(this.emailAddress)) {
+            event = null;
+        } else {
+            event = CustomerEmailAddressChanged.build(command.getId(),
+                    command.getConfirmationHash(),
+                    command.getEmailAddress());
+        }
+
+        return Optional.ofNullable(event);
     }
 
     public ID getId() {
