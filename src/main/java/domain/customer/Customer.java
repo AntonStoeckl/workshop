@@ -1,34 +1,110 @@
 package domain.customer;
 
+import domain.customer.command.ConfirmCustomerEmailAddress;
 import domain.customer.command.RegisterCustomer;
+import domain.customer.event.CustomerEmailAddressConfirmed;
 import domain.customer.event.CustomerRegistered;
+import domain.customer.event.Event;
 import domain.customer.value.EmailAddress;
 import domain.customer.value.Hash;
 import domain.customer.value.ID;
 import domain.customer.value.PersonName;
+import java.util.List;
+import java.util.Optional;
 
 public class Customer {
 
-    private final ID id;
-    private final Hash hash;
-    private final EmailAddress emailAddress;
-    private final PersonName name;
+    private ID id;
+    private Hash hash;
+    private EmailAddress emailAddress;
+    private PersonName name;
+    private boolean emailAddressConfirmed;
 
-    private Customer(ID id, Hash hash, EmailAddress emailAddress, PersonName name) {
-        this.id = id;
-        this.hash = hash;
-        this.emailAddress = emailAddress;
-        this.name = name;
+    private Customer() {
     }
 
 
     public static CustomerRegistered register(RegisterCustomer registerCustomer) {
-        Customer theNewCustomer = new Customer(registerCustomer.getId(),
-                registerCustomer.getHash(),
+        CustomerRegistered event = CustomerRegistered.build(registerCustomer.getId(),
                 registerCustomer.getEmailAddress(),
+                registerCustomer.getHash(),
                 registerCustomer.getName());
-
-        return CustomerRegistered.build(theNewCustomer.id, theNewCustomer.emailAddress, theNewCustomer.hash, theNewCustomer.name);
+        Customer customer = new Customer();
+        ApplyStrategy.CUSTOMER_REGISTERED.apply(customer, event);
+        return event;
     }
 
+    public static Customer rebuild(List<Event> events) {
+        final Customer customer = new Customer();
+        events.stream().forEach(event -> ApplyStrategy.applyEvent(customer, event));
+        return customer;
+    }
+
+    public Optional<Event> confirmEmailAddress(ConfirmCustomerEmailAddress command) {
+        Event event;
+        if (command.getConfirmationHash().equals(this.getHash())) {
+            this.emailAddressConfirmed = true;
+            event = new CustomerEmailAddressConfirmed(id);
+        } else {
+            event = null;
+        }
+        return Optional.of(event);
+    }
+
+    public ID getId() {
+        return id;
+    }
+
+    public Hash getHash() {
+        return hash;
+    }
+
+    public EmailAddress getEmailAddress() {
+        return emailAddress;
+    }
+
+    public PersonName getName() {
+        return name;
+    }
+
+    @Override
+    public String toString() {
+        return "Customer{" + "id=" + id + ", hash=" + hash + ", emailAddress=" + emailAddress + ", name=" + name + '}';
+    }
+
+    enum ApplyStrategy {
+        CUSTOMER_REGISTERED {
+            @Override
+            void apply(Customer customer, Event event) {
+                apply(customer, (CustomerRegistered) event);
+            }
+
+            void apply(Customer customer, CustomerRegistered event) {
+                customer.id = event.getId();
+                customer.hash = event.getHash();
+                customer.emailAddress = event.getEmailAddress();
+                customer.name = event.getName();
+            }
+        }, EMAIL_CONFIRMED {
+            @Override
+            void apply(Customer customer, Event event) {
+                apply(customer, (CustomerEmailAddressConfirmed) event);
+            }
+
+            void apply(Customer customer, CustomerEmailAddressConfirmed event) {
+
+            }
+        };
+
+        public static void applyEvent(Customer customer, Event event) {
+            if (event instanceof CustomerRegistered) {
+                ApplyStrategy.CUSTOMER_REGISTERED.apply(customer, event);
+            } else if (event instanceof CustomerEmailAddressConfirmed) {
+                ApplyStrategy.EMAIL_CONFIRMED.apply(customer, event);
+            }
+            // ignore Event
+        }
+
+        abstract void apply(Customer customer, Event event);
+    }
 }
