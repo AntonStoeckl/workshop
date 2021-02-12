@@ -2,6 +2,7 @@ package domain.customer;
 
 import domain.customer.command.ConfirmCustomerEmailAddress;
 import domain.customer.command.RegisterCustomer;
+import domain.customer.event.CustomerEmailAddressConfirmationFailed;
 import domain.customer.event.CustomerEmailAddressConfirmed;
 import domain.customer.event.CustomerRegistered;
 import domain.customer.event.Event;
@@ -46,7 +47,7 @@ public class Customer {
             this.emailAddressConfirmed = true;
             event = new CustomerEmailAddressConfirmed(id);
         } else {
-            event = null;
+            event = new CustomerEmailAddressConfirmationFailed(id);
         }
         return Optional.of(event);
     }

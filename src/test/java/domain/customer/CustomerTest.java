@@ -2,6 +2,7 @@ package domain.customer;
 
 import domain.customer.command.ConfirmCustomerEmailAddress;
 import domain.customer.command.RegisterCustomer;
+import domain.customer.event.CustomerEmailAddressConfirmationFailed;
 import domain.customer.event.CustomerEmailAddressConfirmed;
 import domain.customer.event.CustomerRegistered;
 import domain.customer.event.Event;
@@ -11,6 +12,7 @@ import domain.customer.value.ID;
 import domain.customer.value.PersonName;
 import java.util.Arrays;
 import java.util.Optional;
+import java.util.UUID;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -63,5 +65,19 @@ public class CustomerTest {
         Event event = optionalEvent.get();
         assertTrue(event instanceof CustomerEmailAddressConfirmed);
         assertEquals(command.getCustomerID(), ((CustomerEmailAddressConfirmed) event).getId());
+    }
+
+    @Test
+    public void confirmation_hash_is_incorrect() {
+        CustomerRegistered theEvent = CustomerRegistered.build(id, email, hash, name);
+
+        Customer customer = Customer.rebuild(Arrays.asList(theEvent));
+
+        ConfirmCustomerEmailAddress command = ConfirmCustomerEmailAddress.build(id.getValue(), UUID.randomUUID());
+        Optional<Event> optionalEvent = customer.confirmEmailAddress(command);
+
+        Event event = optionalEvent.get();
+        assertTrue(event instanceof CustomerEmailAddressConfirmationFailed);
+        assertEquals(command.getCustomerID(), ((CustomerEmailAddressConfirmationFailed) event).getId());
     }
 }
