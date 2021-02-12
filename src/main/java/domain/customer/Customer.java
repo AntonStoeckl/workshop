@@ -1,7 +1,9 @@
 package domain.customer;
 
+import domain.customer.command.ChangeCustomerEmailAddress;
 import domain.customer.command.ConfirmCustomerEmailAddress;
 import domain.customer.command.RegisterCustomer;
+import domain.customer.event.CustomerEmailAddressChanged;
 import domain.customer.event.CustomerEmailAddressConfirmationFailed;
 import domain.customer.event.CustomerEmailAddressConfirmed;
 import domain.customer.event.CustomerRegistered;
@@ -24,7 +26,6 @@ public class Customer {
     private Customer() {
     }
 
-
     public static CustomerRegistered register(RegisterCustomer registerCustomer) {
         CustomerRegistered event = CustomerRegistered.build(registerCustomer.getId(),
                 registerCustomer.getEmailAddress(),
@@ -46,12 +47,18 @@ public class Customer {
         if (!command.getConfirmationHash().equals(this.getHash())) {
             event = new CustomerEmailAddressConfirmationFailed(id);
         } else if (!this.emailAddressConfirmed) {
-            this.emailAddressConfirmed = true;
             event = new CustomerEmailAddressConfirmed(id);
         } else {
             event = null;
         }
         return Optional.ofNullable(event);
+    }
+
+    public Optional<Event> changeEmailAddress(ChangeCustomerEmailAddress command) {
+        CustomerEmailAddressChanged event = CustomerEmailAddressChanged.build(command.getId(),
+                command.getConfirmationHash(),
+                command.getEmailAddress());
+        return Optional.of(event);
     }
 
     public ID getId() {
@@ -97,6 +104,17 @@ public class Customer {
             void apply(Customer customer, CustomerEmailAddressConfirmed event) {
                 customer.emailAddressConfirmed = true;
             }
+        }, EMAIL_CHANGED {
+            @Override
+            void apply(Customer customer, Event event) {
+                apply(customer, (CustomerEmailAddressChanged) event);
+            }
+
+            void apply(Customer customer, CustomerEmailAddressChanged event) {
+                customer.emailAddress = event.getEmailAddress();
+                customer.hash = event.getConfirmationHash();
+                customer.emailAddressConfirmed = false;
+            }
         };
 
         public static void applyEvent(Customer customer, Event event) {
@@ -104,6 +122,8 @@ public class Customer {
                 ApplyStrategy.CUSTOMER_REGISTERED.apply(customer, event);
             } else if (event instanceof CustomerEmailAddressConfirmed) {
                 ApplyStrategy.EMAIL_CONFIRMED.apply(customer, event);
+            } else if (event instanceof CustomerEmailAddressChanged) {
+                ApplyStrategy.EMAIL_CHANGED.apply(customer, event);
             }
             // ignore Event
         }

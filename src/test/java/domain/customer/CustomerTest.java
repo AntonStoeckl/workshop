@@ -1,7 +1,9 @@
 package domain.customer;
 
+import domain.customer.command.ChangeCustomerEmailAddress;
 import domain.customer.command.ConfirmCustomerEmailAddress;
 import domain.customer.command.RegisterCustomer;
+import domain.customer.event.CustomerEmailAddressChanged;
 import domain.customer.event.CustomerEmailAddressConfirmationFailed;
 import domain.customer.event.CustomerEmailAddressConfirmed;
 import domain.customer.event.CustomerRegistered;
@@ -63,6 +65,9 @@ public class CustomerTest {
         Optional<Event> optionalEvent = customer.confirmEmailAddress(command);
 
         Event event = optionalEvent.get();
+
+        Customer.rebuild(Arrays.asList(theEvent, event));
+
         assertTrue(event instanceof CustomerEmailAddressConfirmed);
         assertEquals(command.getCustomerID(), ((CustomerEmailAddressConfirmed) event).getId());
     }
@@ -77,6 +82,9 @@ public class CustomerTest {
         Optional<Event> optionalEvent = customer.confirmEmailAddress(command);
 
         Event event = optionalEvent.get();
+
+        Customer.rebuild(Arrays.asList(theEvent, event));
+
         assertTrue(event instanceof CustomerEmailAddressConfirmationFailed);
         assertEquals(command.getCustomerID(), ((CustomerEmailAddressConfirmationFailed) event).getId());
     }
@@ -105,7 +113,29 @@ public class CustomerTest {
         Optional<Event> optionalEvent = customer.confirmEmailAddress(command);
 
         Event event = optionalEvent.get();
+
+        Customer.rebuild(Arrays.asList(registeredEvent, firstConfirmEvent, event));
+
         assertTrue(event instanceof CustomerEmailAddressConfirmationFailed);
         assertEquals(command.getCustomerID(), ((CustomerEmailAddressConfirmationFailed) event).getId());
+    }
+
+    @Test
+    public void email_address_changed() {
+        final String newMail = "max.mustermann@xyz.com";
+        CustomerRegistered theEvent = CustomerRegistered.build(id, email, hash, name);
+
+        Customer customer = Customer.rebuild(Arrays.asList(theEvent));
+
+        ChangeCustomerEmailAddress command = ChangeCustomerEmailAddress.build(id, hash, EmailAddress.build(newMail));
+        Optional<Event> optionalEvent = customer.changeEmailAddress(command);
+
+        Event event = optionalEvent.get();
+
+        assertTrue(event instanceof CustomerEmailAddressChanged);
+        CustomerEmailAddressChanged addressChangedEvent = (CustomerEmailAddressChanged) event;
+        assertEquals(command.getId(), addressChangedEvent.getId());
+        assertEquals(command.getEmailAddress(), addressChangedEvent.getEmailAddress());
+        assertEquals(command.getConfirmationHash(), addressChangedEvent.getConfirmationHash());
     }
 }
