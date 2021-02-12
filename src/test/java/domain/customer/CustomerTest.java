@@ -134,7 +134,7 @@ public class CustomerTest {
     }
 
     @Test
-    public void change_email_address_to_same_value() {
+    public void change_email_address_to_registered_value() {
         CustomerRegistered theEvent = CustomerRegistered.build(id, email, hash, name);
 
         Customer customer = Customer.rebuild(Arrays.asList(theEvent));
@@ -143,5 +143,41 @@ public class CustomerTest {
         Optional<Event> optionalEvent = customer.changeEmailAddress(command);
 
         assertFalse(optionalEvent.isPresent());
+    }
+
+    @Test
+    public void change_email_address_to_current_value() {
+        final String newMail = "max.mustermann@xyz.com";
+        EmailAddress currentMail = EmailAddress.build(newMail);
+        Hash currentHash = Hash.generate();
+        CustomerRegistered registered = CustomerRegistered.build(id, email, hash, name);
+        CustomerEmailAddressChanged current = CustomerEmailAddressChanged.build(id, currentHash, currentMail);
+
+        Customer customer = Customer.rebuild(Arrays.asList(registered, current));
+
+        ChangeCustomerEmailAddress command = ChangeCustomerEmailAddress.build(id, currentHash, currentMail);
+        Optional<Event> optionalEvent = customer.changeEmailAddress(command);
+
+        assertFalse(optionalEvent.isPresent());
+    }
+
+    @Test
+    public void reconfirm_email_after_change() {
+        final String newMail = "max.mustermann@xyz.com";
+        EmailAddress currentMail = EmailAddress.build(newMail);
+        Hash currentHash = Hash.generate();
+        CustomerRegistered customerRegistered = CustomerRegistered.build(id, email, hash, name);
+        CustomerEmailAddressConfirmed registeredMailConfirmed = new CustomerEmailAddressConfirmed(id);
+        CustomerEmailAddressChanged actualEmailChanged = CustomerEmailAddressChanged.build(id, currentHash, currentMail);
+
+        Customer customer = Customer.rebuild(Arrays.asList(customerRegistered, registeredMailConfirmed, actualEmailChanged));
+
+        ConfirmCustomerEmailAddress confirmCommand = ConfirmCustomerEmailAddress.build(id.getValue(), currentHash.getValue());
+        Optional<Event> optionalEvent = customer.confirmEmailAddress(confirmCommand);
+
+        Event confirmEvent = optionalEvent.get();
+
+        assertTrue(confirmEvent instanceof CustomerEmailAddressConfirmed);
+        assertEquals(confirmCommand.getCustomerID(), ((CustomerEmailAddressConfirmed) confirmEvent).getId());
     }
 }
