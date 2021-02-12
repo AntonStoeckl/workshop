@@ -12,7 +12,7 @@ public class CustomerRegistered implements Event {
     public final Hash hash;
     public final PersonName personName;
 
-    public CustomerRegistered(ID customerId, EmailAddress emailAddress, Hash hash, PersonName personName) {
+    private CustomerRegistered(ID customerId, EmailAddress emailAddress, Hash hash, PersonName personName) {
         this.customerId = customerId;
         this.emailAddress = emailAddress;
         this.hash = hash;
