@@ -5,8 +5,7 @@ import domain.customer.event.CustomerRegistered;
 
 public class Customer {
 
-    public static CustomerRegistered register(RegisterCustomer registerCustomer) {
-        // TODO
-        return null;
+    public static CustomerRegistered register(RegisterCustomer command) {
+        return CustomerRegistered.build(command.customerId, command.emailAddress, command.confirmationHash, command.personName);
     }
 }
