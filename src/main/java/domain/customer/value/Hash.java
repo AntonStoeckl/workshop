@@ -5,10 +5,18 @@ import java.util.UUID;
 
 public class Hash {
 
-    public final String value = UUID.randomUUID().toString();
+    public final String value;
+
+    private Hash(String value) {
+        this.value = value;
+    }
 
     public static Hash generate() {
-        return new Hash();
+        return new Hash(UUID.randomUUID().toString());
+    }
+
+    public static Hash from(String hash) {
+        return new Hash(hash);
     }
 
     @Override

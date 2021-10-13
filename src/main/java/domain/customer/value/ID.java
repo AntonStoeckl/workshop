@@ -5,10 +5,19 @@ import java.util.UUID;
 
 public class ID {
 
-    public final String value = UUID.randomUUID().toString();
+    public final String value;
+
+    public ID(String id) {
+        this.value = id;
+    }
 
     public static ID generate() {
-        return new ID();
+        return new ID(UUID.randomUUID().toString());
+    }
+
+    public static ID from(String id) {
+        // validate it!
+        return new ID(id);
     }
 
     @Override
